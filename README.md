@@ -45,7 +45,7 @@ Includes a custom `idb.js` library that:
 * Exists in both React-module and vanilla JS versions (for testing)
 
 ---
-
+ 
 ## Why This Project
 
 Demonstrates:
