@@ -6,7 +6,7 @@ A **client-side expense tracking web app** built with **React** and **Material U
 
 ---
 
-## Highlights
+## Highlights 
 
 * React + MUI (desktop-first UI)
 * Custom **Promise-based IndexedDB wrapper**
