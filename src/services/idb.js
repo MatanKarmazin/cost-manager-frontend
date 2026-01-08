@@ -4,11 +4,11 @@
  */
 
 const STORE_NAME = 'costs';
-const DEFAULT_RATES = { USD: 1, GBP: 1, EURO: 1, ILS: 1 };
+const DEFAULT_RATES = { USD: 1, GBP: 0.6, EURO: 0.7, ILS: 3.4 };
 const RATES_URL_STORAGE_KEY = 'costManagerRatesUrl';
 
 const DEFAULT_RATES_URL =
-  "https://matankarmazin.github.io/cost-manager-frontend/rates/rates.json";
+  'https://matankarmazin.github.io/cost-manager-frontend/rates/rates.json';
 
 function isFiniteNumber(value) {
   return typeof value === 'number' && Number.isFinite(value);
@@ -72,10 +72,10 @@ function getStoredRatesUrl() {
 
 function fetchRatesMaybe() {
   const url = getStoredRatesUrl();
-  console.log("Rates URL:", url);
+  console.log('Rates URL:', url);
 
   if (!url) {
-    console.warn("No rates URL saved, using DEFAULT_RATES");
+    console.warn('No rates URL saved, using DEFAULT_RATES');
     return Promise.resolve(DEFAULT_RATES);
   }
 
@@ -85,13 +85,13 @@ function fetchRatesMaybe() {
       return resp.json();
     })
     .then((raw) => {
-      console.log("Fetched rates:", raw);
+      console.log('Fetched rates:', raw);
       const normalized = normalizeRatesResponse(raw);
-      if (!normalized) throw new Error("Invalid rates JSON format");
+      if (!normalized) throw new Error('Invalid rates JSON format');
       return normalized;
     })
     .catch((err) => {
-      console.warn("Rates fetch failed, using DEFAULT_RATES:", err);
+      console.warn('Rates fetch failed, using DEFAULT_RATES:', err);
       return DEFAULT_RATES;
     });
 }
@@ -281,123 +281,136 @@ export function openCostsDB(databaseName, databaseVersion) {
       }
 
       function getCategoryTotals(year, month, targetCurrency) {
-  return fetchRatesMaybe().then((rates) => {
-    const y = year;
-    const m = month;
-    const outCur = normalizeCurrency(targetCurrency);
+        return fetchRatesMaybe().then((rates) => {
+          const y = year;
+          const m = month;
+          const outCur = normalizeCurrency(targetCurrency);
 
-    if (!isFiniteNumber(y) || !isFiniteNumber(m)) {
-      throw new Error("year and month must be numbers");
-    }
-    if (m < 1 || m > 12) {
-      throw new Error("month must be in range 1..12");
-    }
-    if (["USD", "GBP", "EURO", "ILS"].indexOf(outCur) === -1) {
-      throw new Error(`Unsupported currency: ${outCur}`);
-    }
-
-    const tx = db.transaction([STORE_NAME], "readonly");
-    const store = tx.objectStore(STORE_NAME);
-    const idx = store.index("year_month");
-    const range = IDBKeyRange.only([y, m]);
-
-    const items = [];
-
-    return new Promise((resolveQuery, rejectQuery) => {
-      const cursorReq = idx.openCursor(range);
-
-      cursorReq.onsuccess = (e) => {
-        const cursor = e.target.result;
-        if (cursor) {
-          items.push(cursor.value);
-          cursor.continue();
-        } else {
-          resolveQuery(items);
-        }
-      };
-
-      cursorReq.onerror = () => {
-        rejectQuery(cursorReq.error || new Error("Cursor failed"));
-      };
-    })
-      .then((allItems) => txDoneToPromise(tx).then(() => allItems))
-      .then((allItems) => {
-        const map = {}; // category -> total
-        for (let i = 0; i < allItems.length; i += 1) {
-          const it = allItems[i];
-          const converted = convertAmount(it.sum, it.currency, outCur, rates);
-          const cat = String(it.category || "Uncategorized");
-          map[cat] = (map[cat] || 0) + converted;
-        }
-
-        // Convert to array for chart
-        return Object.keys(map).map((cat) => ({
-          category: cat,
-          total: Math.round(map[cat] * 100) / 100
-        }));
-      });
-  });
-}
-
-function getYearMonthlyTotals(year, targetCurrency) {
-  return fetchRatesMaybe().then((rates) => {
-    const y = year;
-    const outCur = normalizeCurrency(targetCurrency);
-
-    if (!isFiniteNumber(y)) {
-      throw new Error("year must be a number");
-    }
-    if (["USD", "GBP", "EURO", "ILS"].indexOf(outCur) === -1) {
-      throw new Error(`Unsupported currency: ${outCur}`);
-    }
-
-    const tx = db.transaction([STORE_NAME], "readonly");
-    const store = tx.objectStore(STORE_NAME);
-    const idx = store.index("year");
-
-    const range = IDBKeyRange.only(y);
-    const items = [];
-
-    return new Promise((resolveQuery, rejectQuery) => {
-      const cursorReq = idx.openCursor(range);
-
-      cursorReq.onsuccess = (e) => {
-        const cursor = e.target.result;
-        if (cursor) {
-          items.push(cursor.value);
-          cursor.continue();
-        } else {
-          resolveQuery(items);
-        }
-      };
-
-      cursorReq.onerror = () => {
-        rejectQuery(cursorReq.error || new Error("Cursor failed"));
-      };
-    })
-      .then((allItems) => txDoneToPromise(tx).then(() => allItems))
-      .then((allItems) => {
-        const months = new Array(12).fill(0);
-
-        for (let i = 0; i < allItems.length; i += 1) {
-          const it = allItems[i];
-          const converted = convertAmount(it.sum, it.currency, outCur, rates);
-          const m = Number(it.month);
-          if (m >= 1 && m <= 12) {
-            months[m - 1] += converted;
+          if (!isFiniteNumber(y) || !isFiniteNumber(m)) {
+            throw new Error('year and month must be numbers');
           }
-        }
+          if (m < 1 || m > 12) {
+            throw new Error('month must be in range 1..12');
+          }
+          if (['USD', 'GBP', 'EURO', 'ILS'].indexOf(outCur) === -1) {
+            throw new Error(`Unsupported currency: ${outCur}`);
+          }
 
-        // Chart array: { month: "Jan", total: 123 }
-        const labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+          const tx = db.transaction([STORE_NAME], 'readonly');
+          const store = tx.objectStore(STORE_NAME);
+          const idx = store.index('year_month');
+          const range = IDBKeyRange.only([y, m]);
 
-        return labels.map((label, idx2) => ({
-          month: label,
-          total: Math.round(months[idx2] * 100) / 100
-        }));
-      });
-  });
-}
+          const items = [];
+
+          return new Promise((resolveQuery, rejectQuery) => {
+            const cursorReq = idx.openCursor(range);
+
+            cursorReq.onsuccess = (e) => {
+              const cursor = e.target.result;
+              if (cursor) {
+                items.push(cursor.value);
+                cursor.continue();
+              } else {
+                resolveQuery(items);
+              }
+            };
+
+            cursorReq.onerror = () => {
+              rejectQuery(cursorReq.error || new Error('Cursor failed'));
+            };
+          })
+            .then((allItems) => txDoneToPromise(tx).then(() => allItems))
+            .then((allItems) => {
+              const map = {}; // category -> total
+              for (let i = 0; i < allItems.length; i += 1) {
+                const it = allItems[i];
+                const converted = convertAmount(it.sum, it.currency, outCur, rates);
+                const cat = String(it.category || 'Uncategorized');
+                map[cat] = (map[cat] || 0) + converted;
+              }
+
+              // Convert to array for chart
+              return Object.keys(map).map((cat) => ({
+                category: cat,
+                total: Math.round(map[cat] * 100) / 100,
+              }));
+            });
+        });
+      }
+
+      function getYearMonthlyTotals(year, targetCurrency) {
+        return fetchRatesMaybe().then((rates) => {
+          const y = year;
+          const outCur = normalizeCurrency(targetCurrency);
+
+          if (!isFiniteNumber(y)) {
+            throw new Error('year must be a number');
+          }
+          if (['USD', 'GBP', 'EURO', 'ILS'].indexOf(outCur) === -1) {
+            throw new Error(`Unsupported currency: ${outCur}`);
+          }
+
+          const tx = db.transaction([STORE_NAME], 'readonly');
+          const store = tx.objectStore(STORE_NAME);
+          const idx = store.index('year');
+
+          const range = IDBKeyRange.only(y);
+          const items = [];
+
+          return new Promise((resolveQuery, rejectQuery) => {
+            const cursorReq = idx.openCursor(range);
+
+            cursorReq.onsuccess = (e) => {
+              const cursor = e.target.result;
+              if (cursor) {
+                items.push(cursor.value);
+                cursor.continue();
+              } else {
+                resolveQuery(items);
+              }
+            };
+
+            cursorReq.onerror = () => {
+              rejectQuery(cursorReq.error || new Error('Cursor failed'));
+            };
+          })
+            .then((allItems) => txDoneToPromise(tx).then(() => allItems))
+            .then((allItems) => {
+              const months = new Array(12).fill(0);
+
+              for (let i = 0; i < allItems.length; i += 1) {
+                const it = allItems[i];
+                const converted = convertAmount(it.sum, it.currency, outCur, rates);
+                const m = Number(it.month);
+                if (m >= 1 && m <= 12) {
+                  months[m - 1] += converted;
+                }
+              }
+
+              // Chart array: { month: "Jan", total: 123 }
+              const labels = [
+                'Jan',
+                'Feb',
+                'Mar',
+                'Apr',
+                'May',
+                'Jun',
+                'Jul',
+                'Aug',
+                'Sep',
+                'Oct',
+                'Nov',
+                'Dec',
+              ];
+
+              return labels.map((label, idx2) => ({
+                month: label,
+                total: Math.round(months[idx2] * 100) / 100,
+              }));
+            });
+        });
+      }
 
       resolve({ addCost, getReport, getCategoryTotals, getYearMonthlyTotals });
     };
