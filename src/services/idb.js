@@ -7,6 +7,9 @@ const STORE_NAME = 'costs';
 const DEFAULT_RATES = { USD: 1, GBP: 1, EURO: 1, ILS: 1 };
 const RATES_URL_STORAGE_KEY = 'costManagerRatesUrl';
 
+const DEFAULT_RATES_URL =
+  "https://matankarmazin.github.io/cost-manager-frontend/rates/rates.json";
+
 function isFiniteNumber(value) {
   return typeof value === 'number' && Number.isFinite(value);
 }
@@ -60,9 +63,10 @@ function normalizeRatesResponse(raw) {
 
 function getStoredRatesUrl() {
   try {
-    return localStorage.getItem(RATES_URL_STORAGE_KEY);
+    const url = localStorage.getItem(RATES_URL_STORAGE_KEY);
+    return url && url.trim() ? url.trim() : DEFAULT_RATES_URL;
   } catch (e) {
-    return null;
+    return DEFAULT_RATES_URL;
   }
 }
 
