@@ -9,6 +9,7 @@ lerna-debug.log*
 
 # Dependencies
 node_modules
+pdf_export
 
 # Build output
 dist
