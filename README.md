@@ -1,83 +1,72 @@
 # Cost Manager Frontend – React & IndexedDB
 
-A **client-side expense tracking web application** built with **React** and **Material UI**, demonstrating advanced browser-side persistence using **IndexedDB**, real-time **currency conversion**, and **data visualization**.
+A **client-side expense tracking web application** built with **React** and **Material UI**, demonstrating advanced browser-side persistence using **IndexedDB**, external API integration, and data visualization.
 
-**Live Demo**:
-[https://cost-manager-frontend-71yh.onrender.com](https://cost-manager-frontend-71yh.onrender.com)
+**Live Demo**:  
+https://cost-manager-frontend-71yh.onrender.com
 
 ---
 
 ## What This Project Demonstrates
 
-* Modern React application architecture
-* Client-side persistence using IndexedDB
-* Custom abstraction over browser storage APIs
-* Integration with external REST APIs
-* Data visualization with charts
-* Clean separation of UI, logic, and data layers
-* Real-world frontend engineering patterns
+- Modern React application architecture
+- Client-side persistence beyond `localStorage`
+- Clean separation of UI, logic, and data layers
+- Integration with external REST APIs
+- Data aggregation and visualization
+- Real-world frontend engineering best practices
 
 ---
 
 ## Application Overview
 
-The application allows users to **track personal expenses locally in the browser**, without a backend server.
+The system is a **fully client-side expense manager**, designed to store and process data directly in the browser without relying on a backend server.
 
-Core capabilities include:
+The application provides:
+- Expense creation with amount, currency, category, and description
+- Persistent local storage using IndexedDB
+- Monthly reporting with dynamic currency conversion
+- Visual analysis of spending patterns
 
-* Creating expenses with amount, currency, category, and description
-* Persisting data using IndexedDB (instead of `localStorage`)
-* Generating monthly expense reports
-* Converting currencies dynamically
-* Visualizing spending trends and distributions
-
-All data is stored **entirely on the client**, making the app fast, offline-friendly, and privacy-preserving.
+All data is stored **locally on the client**, making the application fast, offline-capable, and privacy-preserving.
 
 ---
 
 ## Architecture Overview
 
-The project follows a **clean frontend architecture**:
+The application follows a layered frontend architecture:
 
-* **UI Layer** – React components & Material UI
-* **Data Layer** – Custom IndexedDB abstraction
-* **Logic Layer** – Reporting, aggregation, and conversion logic
-* **External Integration** – Exchange rates API
+- **UI Layer** – React components and Material UI
+- **Logic Layer** – Aggregation, reporting, and currency conversion
+- **Data Layer** – Custom IndexedDB abstraction
+- **External Integration** – Exchange rates API (Frankfurter)
 
-A custom `idb.js` module:
-
-* Wraps IndexedDB with Promises
-* Abstracts low-level database logic
-* Separates persistence concerns from UI code
-* Exists in both React-module and vanilla JS versions (for testing)
+A custom `idb.js` module is used to:
+- Wrap IndexedDB operations with Promises
+- Abstract low-level browser APIs
+- Separate persistence logic from UI components
+- Support both React-based and vanilla JavaScript usage (for testing)
 
 ---
 
 ## Tech Stack
 
-* **Frontend**: React, Material UI, JavaScript (ES6+)
-* **Storage**: IndexedDB (custom Promise-based wrapper)
-* **Charts**: Chart.js
-* **External API**: Frankfurter Exchange Rates
-* **Build Tooling**: Vite
+- **Frontend**: React, Material UI, JavaScript (ES6+)
+- **Storage**: IndexedDB (custom Promise-based wrapper)
+- **Charts**: Chart.js
+- **API**: Frankfurter Exchange Rates
+- **Build Tooling**: Vite
 
 ---
 
 ## Running the Project (Local)
 
-Install dependencies:
-
 ```bash
 npm install
-```
-
-Run the development server:
-
-```bash
 npm run dev
 ```
 
-The app will be available at:
+The application will be available at:
 
 ```
 http://localhost:5173
